@@ -1,0 +1,13 @@
+runtime: go
+api_version: go1
+
+handlers:
+  - url: /
+    static_files: main.html
+    upload: main.html
+    secure: always
+
+  - url: /noop
+    script: _go_app
+    secure: always
+
