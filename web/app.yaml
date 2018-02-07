@@ -3,11 +3,16 @@ api_version: go1
 
 handlers:
   - url: /
-    static_files: main.html
-    upload: main.html
+    static_files: index.html
+    upload: index.html
     secure: always
 
-  - url: /noop
+  - url: /bundle.js
+    static_files: build/bundle.js
+    upload: build/bundle.js
+    secure: always
+
+  - url: /api/.*
     script: _go_app
     secure: always
 
