@@ -1,10 +1,11 @@
 rm ../gen/*
+rm _proto/*
 
 # go
-protoc --go_out=plugins=grpc:../gen/ *.proto
+protoc --go_out=plugins=grpc:../gen/ service.proto
 
 # elm (types)
-protoc --elm_out=plugins=grpc:../gen/ *.proto
+protoc --elm_out=plugins=grpc:../gen/ service.proto
 
 # js (services & types)
 protoc \
@@ -12,11 +13,11 @@ protoc \
   --js_out=import_style=commonjs,binary:../gen/ \
   --js_service_out=../gen/ \
   -I . \
-  *.proto
+  service.proto
 
 # ts
 protoc \
   --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts \
   --js_out=import_style=commonjs,binary:./_proto \
   --ts_out=service=true:./_proto \
-  ./proto/examplecom/library/book_service.proto
+  ./service.proto

@@ -1,32 +1,31 @@
 package web
 
 import (
-	pb "github.com/lambdasoup/finmgr/gen"
 	"net/http"
+
+	pb "github.com/lambdasoup/finmgr/gen"
 
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"golang.org/x/net/context"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/log"
 	"google.golang.org/grpc"
 )
 
-// server is used to implement helloworld.GreeterServer.
 type server struct{}
 
-// SayHello mplements elloworld.GreeterServer
-func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	return &pb.HelloReply{Message: "Hello " + in.Name}, nil
+func (s *server) SayHello(ctx context.Context, in *pb.Hello) (*pb.Bye, error) {
+	return &pb.Bye{Name: "Bye " + in.Name}, nil
 }
 
 func init() {
 	s := grpc.NewServer()
-	pb.RegisterGreeterServer(s, &server{})
+	pb.RegisterServiceServer(s, &server{})
 
 	wrappedGrpc := grpcweb.WrapServer(s)
-	http.HandleFunc("/api/", (func(resp http.ResponseWriter, req *http.Request) {
-		if wrappedGrpc.IsGrpcWebRequest(req) {
-			wrappedGrpc.ServeHTTP(resp, req)
-		}
-		// Fall back to other servers.
-		http.DefaultServeMux.ServeHTTP(resp, req)
+	http.HandleFunc("/pb.Service/", (func(resp http.ResponseWriter, req *http.Request) {
+		ctx := appengine.NewContext(req)
+		log.Debugf(ctx, "got req")
+		wrappedGrpc.ServeHTTP(resp, req)
 	}))
 }

@@ -12,7 +12,7 @@ handlers:
     upload: build/bundle.js
     secure: always
 
-  - url: /api/.*
+  - url: /pb.Service/.*
     script: _go_app
     secure: always
 
