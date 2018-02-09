@@ -4,17 +4,15 @@
   "description": "",
   "dependencies": {
     "@types/google-protobuf": "^3.2.7",
-    "babel-core": "^6.26.0",
-    "babelify": "^8.0.0",
     "google-protobuf": "^3.2.0",
     "grpc-web-client": "^0.5.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "webpack": "^3.10.0"
+  },
   "scripts": {
-    "start": "npm run elm-typescript-interop && webpack-dev-server --hot",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "elm-typescript-interop": "elm-typescript-interop src/Main.elm --output=src/Main/index.d.ts",
-    "build": "npm run elm-typescript-interop && webpack -p"
+    "build": "webpack --config webpack.config.js"
   },
   "keywords": [],
   "author": "",
