@@ -4,7 +4,7 @@ var service = require("../service_pb_service")
 var pb = require("../service_pb")
 var grpc = require("grpc-web-client")
 
-var host = "http://localhost:8080";
+var host = window.location.protocol + "//" + window.location.host;
 
 function sendHello() {
   var hello = new pb.Hello();
