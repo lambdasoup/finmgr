@@ -12,6 +12,11 @@ handlers:
     upload: build/bundle.js
     secure: always
 
+  - url: /elm.js
+    static_files: build/elm.js
+    upload: build/elm.js
+    secure: always
+
   - url: /pb.Service/.*
     script: _go_app
     secure: always
@@ -19,4 +24,3 @@ handlers:
 skip_files:
    - ^elm-stuff/.*
    - ^node_modules/.*
-

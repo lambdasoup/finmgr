@@ -1,0 +1,8 @@
+[
+  {
+    "srcDir": "src",
+    "destDir": "dist",
+    "files": "**/*.js",
+    "command": "browserify src/index.js service_pb*js node_modules/google-protobuf/google-protobuf.js -o build/bundle.js"
+  }
+]

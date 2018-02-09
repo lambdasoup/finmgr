@@ -10,8 +10,8 @@ protoc --elm_out=plugins=grpc:../gen/ service.proto
 # js (services & types)
 protoc \
   --plugin=protoc-gen-js_service=./node_modules/.bin/protoc-gen-js_service \
-  --js_out=import_style=commonjs,binary:../gen/ \
-  --js_service_out=../gen/ \
+  --js_out=import_style=commonjs,binary:. \
+  --js_service_out=. \
   -I . \
   service.proto
 
