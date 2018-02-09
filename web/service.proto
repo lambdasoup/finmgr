@@ -10,7 +10,11 @@ message Bye {
   string name = 1;
 }
 
+message Empty {
+}
+
 service Service {
   rpc SayHello(Hello) returns (Bye) {}
+  rpc GetHellos(Empty) returns (stream Hello) {}
 }
 

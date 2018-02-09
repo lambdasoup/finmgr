@@ -14,6 +14,14 @@ Service.SayHello = {
   requestType: service_pb.Hello,
   responseType: service_pb.Bye
 };
+Service.GetHellos = {
+  methodName: "GetHellos",
+  service: Service,
+  requestStream: false,
+  responseStream: true,
+  requestType: service_pb.Empty,
+  responseType: service_pb.Hello
+};
 module.exports = {
   Service: Service,
 };

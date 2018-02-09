@@ -10,6 +10,7 @@ It is generated from these files:
 It has these top-level messages:
 	Hello
 	Bye
+	Empty
 */
 package pb
 
@@ -65,9 +66,18 @@ func (m *Bye) GetName() string {
 	return ""
 }
 
+type Empty struct {
+}
+
+func (m *Empty) Reset()                    { *m = Empty{} }
+func (m *Empty) String() string            { return proto.CompactTextString(m) }
+func (*Empty) ProtoMessage()               {}
+func (*Empty) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
+
 func init() {
 	proto.RegisterType((*Hello)(nil), "pb.Hello")
 	proto.RegisterType((*Bye)(nil), "pb.Bye")
+	proto.RegisterType((*Empty)(nil), "pb.Empty")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -82,6 +92,7 @@ const _ = grpc.SupportPackageIsVersion4
 
 type ServiceClient interface {
 	SayHello(ctx context.Context, in *Hello, opts ...grpc.CallOption) (*Bye, error)
+	GetHellos(ctx context.Context, in *Empty, opts ...grpc.CallOption) (Service_GetHellosClient, error)
 }
 
 type serviceClient struct {
@@ -101,10 +112,43 @@ func (c *serviceClient) SayHello(ctx context.Context, in *Hello, opts ...grpc.Ca
 	return out, nil
 }
 
+func (c *serviceClient) GetHellos(ctx context.Context, in *Empty, opts ...grpc.CallOption) (Service_GetHellosClient, error) {
+	stream, err := grpc.NewClientStream(ctx, &_Service_serviceDesc.Streams[0], c.cc, "/pb.Service/GetHellos", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &serviceGetHellosClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Service_GetHellosClient interface {
+	Recv() (*Hello, error)
+	grpc.ClientStream
+}
+
+type serviceGetHellosClient struct {
+	grpc.ClientStream
+}
+
+func (x *serviceGetHellosClient) Recv() (*Hello, error) {
+	m := new(Hello)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // Server API for Service service
 
 type ServiceServer interface {
 	SayHello(context.Context, *Hello) (*Bye, error)
+	GetHellos(*Empty, Service_GetHellosServer) error
 }
 
 func RegisterServiceServer(s *grpc.Server, srv ServiceServer) {
@@ -129,6 +173,27 @@ func _Service_SayHello_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Service_GetHellos_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ServiceServer).GetHellos(m, &serviceGetHellosServer{stream})
+}
+
+type Service_GetHellosServer interface {
+	Send(*Hello) error
+	grpc.ServerStream
+}
+
+type serviceGetHellosServer struct {
+	grpc.ServerStream
+}
+
+func (x *serviceGetHellosServer) Send(m *Hello) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 var _Service_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "pb.Service",
 	HandlerType: (*ServiceServer)(nil),
@@ -138,20 +203,27 @@ var _Service_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Service_SayHello_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetHellos",
+			Handler:       _Service_GetHellos_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "service.proto",
 }
 
 func init() { proto.RegisterFile("service.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 115 bytes of a gzipped FileDescriptorProto
+	// 144 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x2d, 0x4e, 0x2d, 0x2a,
 	0xcb, 0x4c, 0x4e, 0xd5, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x2a, 0x48, 0x52, 0x92, 0xe6,
 	0x62, 0xf5, 0x48, 0xcd, 0xc9, 0xc9, 0x17, 0x12, 0xe2, 0x62, 0xc9, 0x4b, 0xcc, 0x4d, 0x95, 0x60,
-	0x54, 0x60, 0xd4, 0xe0, 0x0c, 0x02, 0xb3, 0x95, 0x24, 0xb9, 0x98, 0x9d, 0x2a, 0x53, 0xb1, 0x49,
-	0x19, 0x69, 0x73, 0xb1, 0x07, 0x43, 0x0c, 0x13, 0x52, 0xe0, 0xe2, 0x08, 0x4e, 0xac, 0x84, 0x98,
-	0xc2, 0xa9, 0x57, 0x90, 0xa4, 0x07, 0x66, 0x4a, 0xb1, 0x83, 0x98, 0x4e, 0x95, 0xa9, 0x4a, 0x0c,
-	0x49, 0x6c, 0x60, 0xfb, 0x8c, 0x01, 0x01, 0x00, 0x00, 0xff, 0xff, 0xba, 0xc9, 0x23, 0xf2, 0x80,
-	0x00, 0x00, 0x00,
+	0x54, 0x60, 0xd4, 0xe0, 0x0c, 0x02, 0xb3, 0x95, 0x24, 0xb9, 0x98, 0x9d, 0x2a, 0x53, 0xb1, 0x4a,
+	0xb1, 0x73, 0xb1, 0xba, 0xe6, 0x16, 0x94, 0x54, 0x1a, 0x05, 0x71, 0xb1, 0x07, 0x43, 0x4c, 0x15,
+	0x52, 0xe0, 0xe2, 0x08, 0x4e, 0xac, 0x84, 0x18, 0xc7, 0xa9, 0x57, 0x90, 0xa4, 0x07, 0x66, 0x4a,
+	0xb1, 0x83, 0x98, 0x4e, 0x95, 0xa9, 0x4a, 0x0c, 0x42, 0xaa, 0x5c, 0x9c, 0xee, 0xa9, 0x25, 0x60,
+	0xe1, 0x62, 0x88, 0x12, 0xb0, 0x21, 0x52, 0x08, 0xd5, 0x4a, 0x0c, 0x06, 0x8c, 0x49, 0x6c, 0x60,
+	0xf7, 0x19, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0x3a, 0xee, 0xd3, 0xb5, 0xb0, 0x00, 0x00, 0x00,
 }
