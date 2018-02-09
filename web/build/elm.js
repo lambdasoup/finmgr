@@ -7910,38 +7910,33 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
-var _user$project$Main$update = F2(
-	function (msg, model) {
-		var _p0 = msg;
-		switch (_p0.ctor) {
-			case 'Increment':
-				return {ctor: '_Tuple2', _0: model + 1, _1: _elm_lang$core$Platform_Cmd$none};
-			case 'Decrement':
-				return {ctor: '_Tuple2', _0: model - 1, _1: _elm_lang$core$Platform_Cmd$none};
-			default:
-				var _p1 = A2(_elm_lang$core$Debug$log, 'ReplyReceived', _p0._0);
-				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-		}
-	});
+var _user$project$Main$init = {ctor: '_Tuple2', _0: '---', _1: _elm_lang$core$Platform_Cmd$none};
 var _user$project$Main$hello = _elm_lang$core$Native_Platform.outgoingPort(
 	'hello',
 	function (v) {
 		return v;
 	});
-var _user$project$Main$init = {
-	ctor: '_Tuple2',
-	_0: 0,
-	_1: _user$project$Main$hello('World')
-};
-var _user$project$Main$reply = _elm_lang$core$Native_Platform.incomingPort('reply', _elm_lang$core$Json_Decode$int);
+var _user$project$Main$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		if (_p0.ctor === 'Send') {
+			return {
+				ctor: '_Tuple2',
+				_0: model,
+				_1: _user$project$Main$hello('Alice')
+			};
+		} else {
+			return {ctor: '_Tuple2', _0: _p0._0, _1: _elm_lang$core$Platform_Cmd$none};
+		}
+	});
+var _user$project$Main$reply = _elm_lang$core$Native_Platform.incomingPort('reply', _elm_lang$core$Json_Decode$string);
 var _user$project$Main$ReplyReceived = function (a) {
 	return {ctor: 'ReplyReceived', _0: a};
 };
 var _user$project$Main$subscriptions = function (model) {
 	return _user$project$Main$reply(_user$project$Main$ReplyReceived);
 };
-var _user$project$Main$Decrement = {ctor: 'Decrement'};
-var _user$project$Main$Increment = {ctor: 'Increment'};
+var _user$project$Main$Send = {ctor: 'Send'};
 var _user$project$Main$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -7952,12 +7947,12 @@ var _user$project$Main$view = function (model) {
 				_elm_lang$html$Html$button,
 				{
 					ctor: '::',
-					_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Decrement),
+					_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Send),
 					_1: {ctor: '[]'}
 				},
 				{
 					ctor: '::',
-					_0: _elm_lang$html$Html$text('---'),
+					_0: _elm_lang$html$Html$text('say hello'),
 					_1: {ctor: '[]'}
 				}),
 			_1: {
@@ -7971,22 +7966,7 @@ var _user$project$Main$view = function (model) {
 							_elm_lang$core$Basics$toString(model)),
 						_1: {ctor: '[]'}
 					}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$button,
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Increment),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text('+++'),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
-				}
+				_1: {ctor: '[]'}
 			}
 		});
 };

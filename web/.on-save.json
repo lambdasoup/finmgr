@@ -4,5 +4,11 @@
     "destDir": "dist",
     "files": "**/*.js",
     "command": "npm run-script build"
+  },
+  {
+    "srcDir": "src",
+    "destDir": "dist",
+    "files": "**/*.elm",
+    "command": "elm-make src/Main.elm --output build/elm.js"
   }
 ]

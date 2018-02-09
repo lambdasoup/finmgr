@@ -6,18 +6,6 @@ var grpc = require("grpc-web-client")
 
 var host = window.location.protocol + "//" + window.location.host;
 
-function sendHello() {
-  var hello = new pb.Hello();
-  hello.setName("Alice");
-  grpc.grpc.unary(service.Service.SayHello, {
-    request: hello,
-    host: host,
-    onEnd: function(res) {
-      console.log("res", res);
-    }
-  });
-}
-
 function getHellos() {
   var empty = new pb.Empty();
   const client = grpc.grpc.client(service.Service.GetHellos, {
@@ -36,5 +24,18 @@ function getHellos() {
   client.send(empty);
 }
 
-sendHello()
 getHellos()
+
+app.ports.hello.subscribe(function(name) {
+  var hello = new pb.Hello();
+  hello.setName(name);
+  grpc.grpc.unary(service.Service.SayHello, {
+    request: hello,
+    host: host,
+    onEnd: function(res) {
+      lastres = res
+      console.log("res", res);
+      app.ports.reply.send(res.message.getName());
+    }
+  });
+});
