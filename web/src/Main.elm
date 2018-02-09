@@ -3,11 +3,12 @@ port module Main exposing (main)
 import Html exposing (Html, button, div, text)
 import Html.Events exposing (onClick)
 
+import Service exposing (Hello, Bye)
 
-port hello : String -> Cmd msg
+port hello : Hello -> Cmd msg
 
 
-port reply : (String -> msg) -> Sub msg
+port reply : (Bye -> msg) -> Sub msg
 
 
 type alias Model =
@@ -21,7 +22,7 @@ init =
 
 type Msg
     = Send
-    | ReplyReceived String
+    | ReplyReceived Bye
 
 
 view : Model -> Html Msg
@@ -36,10 +37,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Send ->
-            ( model, hello "Alice" )
+            ( model, hello (Hello "Alice") )
 
-        ReplyReceived name ->
-            ( name , Cmd.none )
+        ReplyReceived bye ->
+            ( bye.name , Cmd.none )
 
 
 subscriptions : Model -> Sub Msg

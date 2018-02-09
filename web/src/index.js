@@ -26,16 +26,14 @@ function getHellos() {
 
 getHellos()
 
-app.ports.hello.subscribe(function(name) {
-  var hello = new pb.Hello();
-  hello.setName(name);
+app.ports.hello.subscribe(function(msg) {
+  var hello = new pb.Hello(msg);
+  hello.setName(msg.name);
   grpc.grpc.unary(service.Service.SayHello, {
     request: hello,
     host: host,
     onEnd: function(res) {
-      lastres = res
-      console.log("res", res);
-      app.ports.reply.send(res.message.getName());
+      app.ports.reply.send(res.message.toObject());
     }
   });
 });

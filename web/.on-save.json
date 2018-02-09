@@ -10,5 +10,11 @@
     "destDir": "dist",
     "files": "**/*.elm",
     "command": "elm-make src/Main.elm --output build/elm.js"
+  },
+  {
+    "srcDir": ".",
+    "destDir": "dist",
+    "files": "**/*.proto",
+    "command": "./genproto.sh"
   }
 ]

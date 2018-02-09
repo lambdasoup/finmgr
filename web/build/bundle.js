@@ -4300,7 +4300,7 @@ proto.pb.Empty.prototype.toObject = function(opt_includeInstance) {
  */
 proto.pb.Empty.toObject = function(includeInstance, msg) {
   var f, obj = {
-
+    dummy: msg.getDummy()
   };
 
   if (includeInstance) {
@@ -4337,6 +4337,10 @@ proto.pb.Empty.deserializeBinaryFromReader = function(msg, reader) {
     }
     var field = reader.getFieldNumber();
     switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setDummy(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -4375,6 +4379,13 @@ proto.pb.Empty.prototype.serializeBinary = function() {
  */
 proto.pb.Empty.prototype.serializeBinaryToWriter = function (writer) {
   var f = undefined;
+  f = this.getDummy();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
 };
 
 
@@ -4384,6 +4395,21 @@ proto.pb.Empty.prototype.serializeBinaryToWriter = function (writer) {
  */
 proto.pb.Empty.prototype.cloneMessage = function() {
   return /** @type {!proto.pb.Empty} */ (jspb.Message.cloneMessage(this));
+};
+
+
+/**
+ * optional string dummy = 1;
+ * @return {string}
+ */
+proto.pb.Empty.prototype.getDummy = function() {
+  return /** @type {string} */ (jspb.Message.getFieldProto3(this, 1, ""));
+};
+
+
+/** @param {string} value  */
+proto.pb.Empty.prototype.setDummy = function(value) {
+  jspb.Message.setField(this, 1, value);
 };
 
 
@@ -7529,16 +7555,14 @@ function getHellos() {
 
 getHellos()
 
-app.ports.hello.subscribe(function(name) {
-  var hello = new pb.Hello();
-  hello.setName(name);
+app.ports.hello.subscribe(function(msg) {
+  var hello = new pb.Hello(msg);
+  hello.setName(msg.name);
   grpc.grpc.unary(service.Service.SayHello, {
     request: hello,
     host: host,
     onEnd: function(res) {
-      lastres = res
-      console.log("res", res);
-      app.ports.reply.send(res.message.getName());
+      app.ports.reply.send(res.message.toObject());
     }
   });
 });
