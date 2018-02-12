@@ -8,19 +8,20 @@ handlers:
     secure: always
 
   - url: /bundle.js
-    static_files: build/bundle.js
-    upload: build/bundle.js
+    static_files: bundle.js
+    upload: bundle.js
     secure: always
 
   - url: /elm.js
-    static_files: build/elm.js
-    upload: build/elm.js
+    static_files: elm.js
+    upload: elm.js
     secure: always
 
-  - url: /pb.Service/.*
+  - url: /finmgr.Service/.*
     script: _go_app
     secure: always
 
 skip_files:
    - ^elm-stuff/.*
    - ^node_modules/.*
+   - ^hbci/.*

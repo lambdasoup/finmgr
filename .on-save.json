@@ -1,0 +1,20 @@
+[
+  {
+    "srcDir": ".",
+    "destDir": "gen",
+    "files": "*.js",
+    "command": "npm run-script build"
+  },
+  {
+    "srcDir": ".",
+    "destDir": "gen",
+    "files": "*.elm",
+    "command": "elm-make Main.elm --output elm.js"
+  },
+  {
+    "srcDir": ".",
+    "destDir": "gen",
+    "files": "*.proto",
+    "command": "./genproto.sh"
+  }
+]

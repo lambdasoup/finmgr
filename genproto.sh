@@ -1,10 +1,8 @@
-rm ../gen/*
-
 # go
-protoc --go_out=plugins=grpc:../gen/ service.proto
+protoc --go_out=plugins=grpc:. service.proto
 
 # elm (types)
-protoc --elm_out=plugins=grpc:./src/ service.proto
+protoc --elm_out=plugins=grpc:. service.proto
 
 # js (services & types)
 protoc \

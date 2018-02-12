@@ -1,8 +1,7 @@
 var app = Elm.Main.fullscreen()
-
-var service = require("../service_pb_service")
+var service = require("./service_pb_service")
+var pb = require("./service_pb")
 var jspb = require("google-protobuf")
-var pb = require("../service_pb")
 var grpc = require("grpc-web-client")
 
 var host = window.location.protocol + "//" + window.location.host;
