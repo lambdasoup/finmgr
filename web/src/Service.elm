@@ -45,21 +45,3 @@ byeEncoder v =
     JE.object <| List.filterMap identity <|
         [ (requiredFieldEncoder "name" JE.string "" v.name)
         ]
-
-
-type alias Empty =
-    { dummy : String -- 1
-    }
-
-
-emptyDecoder : JD.Decoder Empty
-emptyDecoder =
-    JD.lazy <| \_ -> decode Empty
-        |> required "dummy" JD.string ""
-
-
-emptyEncoder : Empty -> JE.Value
-emptyEncoder v =
-    JE.object <| List.filterMap identity <|
-        [ (requiredFieldEncoder "dummy" JE.string "" v.dummy)
-        ]

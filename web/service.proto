@@ -10,12 +10,6 @@ message Bye {
   string name = 1;
 }
 
-// actually not needed bug in elm-protobuf
-message Empty {
-  string dummy = 1;
-}
-
 service Service {
   rpc SayHello(Hello) returns (Bye) {}
-  rpc GetHellos(Empty) returns (stream Hello) {}
 }
