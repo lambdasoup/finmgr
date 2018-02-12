@@ -1,7 +1,0 @@
-runtime: go
-api_version: go1
-service: hbci
-
-handlers:
-  - url: /.*
-    script: _go_app

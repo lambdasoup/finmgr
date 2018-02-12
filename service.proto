@@ -2,14 +2,16 @@ syntax = "proto3";
 
 package finmgr;
 
-message Hello {
-  string name = 1;
+message AccountInfo {
+  string id = 1;
+  string pin = 2;
+  string blz = 3;
 }
 
-message Bye {
-  string name = 1;
+message Accounts {
+  string info = 1;
 }
 
 service Service {
-  rpc SayHello(Hello) returns (Bye) {}
+  rpc GetAccounts(AccountInfo) returns (Accounts) {}
 }

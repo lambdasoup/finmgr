@@ -6,11 +6,14 @@ var grpc = require("grpc-web-client")
 
 var host = window.location.protocol + "//" + window.location.host;
 
-app.ports.hello.subscribe(function(msg) {
-  var hello = new pb.Hello();
-  hello.setName(msg.name);
-  grpc.grpc.unary(service.Service.SayHello, {
-    request: hello,
+app.ports.getAccounts.subscribe(function(msg) {
+  var accountInfo = new pb.AccountInfo();
+  accountInfo.setId(msg.id);
+  accountInfo.setPin(msg.pin);
+  accountInfo.setBlz(msg.blz);
+  console.log(msg)
+  grpc.grpc.unary(service.Service.GetAccounts, {
+    request: accountInfo,
     host: host,
     onEnd: function(res) {
       app.ports.reply.send(res.message.toObject());

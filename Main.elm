@@ -6,32 +6,29 @@ import Html.Events exposing (..)
 import Bootstrap.Grid as Grid
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as Input
-import Bootstrap.Form.Select as Select
-import Bootstrap.Form.Checkbox as Checkbox
-import Bootstrap.Form.Radio as Radio
-import Bootstrap.Form.Textarea as Textarea
-import Bootstrap.Form.Fieldset as Fieldset
 import Bootstrap.Button as Button
 
-import Service exposing (Hello, Bye)
+import Service exposing (AccountInfo, Accounts)
 
-port hello : Hello -> Cmd msg
+port getAccounts : AccountInfo -> Cmd msg
 
 
-port reply : (Bye -> msg) -> Sub msg
+port reply : (Accounts -> msg) -> Sub msg
 
 
 type alias Model =
-  { accountId: String
-  , reply: String
+  { accountInfo: AccountInfo
+  , accounts: Accounts
   }
 
 
 initialModel : Model
 initialModel =
-  { accountId = ""
-  , reply = "no reply yet"
+  { accountInfo = AccountInfo "" "" ""
+  , accounts = Accounts ""
   }
+
+
 
 init : ( Model, Cmd Msg )
 init =
@@ -40,8 +37,10 @@ init =
 
 type Msg
     = GetAccounts
-    | ReplyReceived Bye
+    | ReplyReceived Accounts
     | SetAccountId String
+    | SetPin String
+    | SetBlz String
 
 
 view : Model -> Html Msg
@@ -55,13 +54,17 @@ view model =
                     , Input.text [ Input.onInput SetAccountId ]
                     ]
                 , Form.group []
+                    [ Form.label [for "account-blz"] [ text "Account BLZ"]
+                    , Input.text [ Input.onInput SetBlz ]
+                    ]
+                , Form.group []
                     [ Form.label [for "account-pin"] [ text "Account PIN"]
-                    , Input.password [ Input.id "account-pin" ]
+                    , Input.password [ Input.onInput SetPin ]
                     ]
                 , Button.button [ Button.primary ] [ text "Show Accounts" ]
                 ]
             ]
-          , Grid.col [] [ text model.reply ]
+          , Grid.col [] [ text model.accounts.info ]
           ]
       ]
 
@@ -70,13 +73,31 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GetAccounts ->
-            ( model, hello ( Hello model.accountId ) )
+            ( model, getAccounts model.accountInfo )
 
         SetAccountId updated ->
-            ( { model | accountId = updated }, Cmd.none )
+            let
+              updated1 = model.accountInfo
+              updated2 = { updated1 | id = updated }
+            in
+              ( { model | accountInfo = updated2 }, Cmd.none )
 
-        ReplyReceived bye ->
-            ( { model | reply = bye.name }, Cmd.none )
+        SetBlz updated ->
+            let
+              updated1 = model.accountInfo
+              updated2 = { updated1 | blz = updated }
+            in
+              ( { model | accountInfo = updated2 }, Cmd.none )
+
+        SetPin updated ->
+            let
+              updated1 = model.accountInfo
+              updated2 = { updated1 | pin = updated }
+            in
+              ( { model | accountInfo = updated2 }, Cmd.none )
+
+        ReplyReceived reply ->
+            ( { model | accounts = reply }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
