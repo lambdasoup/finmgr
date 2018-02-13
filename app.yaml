@@ -18,7 +18,7 @@ handlers:
     upload: elm.js
     secure: always
 
-  - url: /finmgr.Service/.*
+  - url: /finmgr.UserService/.*
     script: _go_app
     secure: always
     login: required

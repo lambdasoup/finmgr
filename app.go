@@ -12,6 +12,7 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/urlfetch"
+	"google.golang.org/appengine/user"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -45,12 +46,23 @@ func (s *server) GetAccounts(ctx context.Context, in *AccountInfo) (*Accounts, e
 	return &Accounts{Info: fmt.Sprintf("TODO accounts info %v", accounts)}, err
 }
 
+func (s *server) GetUser(ctx context.Context, in *Empty) (*User, error) {
+	grpc.SendHeader(ctx, metadata.Pairs("Pre-Response-Metadata", "Is-sent-as-headers-unary"))
+	grpc.SetTrailer(ctx, metadata.Pairs("Post-Response-Metadata", "Is-sent-as-trailers-unary"))
+
+	actx := ctx.Value(&contextKey).(context.Context)
+	u := user.Current(actx)
+
+	return &User{Email: u.Email}, nil
+}
+
 func init() {
 	s := grpc.NewServer()
-	RegisterServiceServer(s, &server{})
+	RegisterUserServiceServer(s, &server{})
+	RegisterAccountServiceServer(s, &server{})
 
 	wrappedGrpc := grpcweb.WrapServer(s)
-	http.HandleFunc("/finmgr.Service/", (func(resp http.ResponseWriter, req *http.Request) {
+	http.HandleFunc("/finmgr.UserService/", (func(resp http.ResponseWriter, req *http.Request) {
 		ctx := appengine.NewContext(req)
 
 		wrappedreq := req.WithContext(context.WithValue(req.Context(), &contextKey, ctx))

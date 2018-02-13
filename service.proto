@@ -12,6 +12,18 @@ message Accounts {
   string info = 1;
 }
 
-service Service {
+message User {
+  string email = 1;
+}
+
+message Empty {
+  string dummy = 1;
+}
+
+service AccountService {
   rpc GetAccounts(AccountInfo) returns (Accounts) {}
+}
+
+service UserService {
+  rpc GetUser(Empty) returns (User) {}
 }

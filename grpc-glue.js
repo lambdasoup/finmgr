@@ -11,7 +11,6 @@ app.ports.getAccounts.subscribe(function(msg) {
   accountInfo.setId(msg.id);
   accountInfo.setPin(msg.pin);
   accountInfo.setBlz(msg.blz);
-  console.log(msg)
   grpc.grpc.unary(service.Service.GetAccounts, {
     request: accountInfo,
     host: host,
@@ -19,4 +18,20 @@ app.ports.getAccounts.subscribe(function(msg) {
       app.ports.reply.send(res.message.toObject());
     }
   });
+});
+
+app.ports.getUserEmpty.subscribe(function(msg) {
+  var empty = new pb.Empty();
+  grpc.grpc.unary(service.UserService.GetUser, {
+    request: empty,
+    host: host,
+    onEnd: function(res) {
+      app.ports.setUser.send(res.message.toObject());
+    }
+  });
+  // setTimeout(function(){
+  //   var user = new pb.User()
+  //   user.setEmail("test@example.com");
+  //   app.ports.setUser.send(user.toObject());
+  // }, 1000);
 });
