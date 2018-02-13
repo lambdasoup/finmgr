@@ -29,9 +29,4 @@ app.ports.getUserEmpty.subscribe(function(msg) {
       app.ports.setUser.send(res.message.toObject());
     }
   });
-  // setTimeout(function(){
-  //   var user = new pb.User()
-  //   user.setEmail("test@example.com");
-  //   app.ports.setUser.send(user.toObject());
-  // }, 1000);
 });

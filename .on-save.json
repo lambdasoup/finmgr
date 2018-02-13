@@ -9,7 +9,7 @@
     "srcDir": ".",
     "destDir": ".",
     "files": "*.elm",
-    "command": "elm-make Main.elm --output elm.js"
+    "command": "elm-make Main.elm --output app/elm.js"
   },
   {
     "srcDir": ".",

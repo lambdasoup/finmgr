@@ -1,20 +1,13 @@
 port module Main exposing (main)
 
 import Html exposing (..)
-import Service exposing (AccountInfo, Accounts)
 import User exposing (..)
-
-
-port getAccounts : AccountInfo -> Cmd msg
-
-
-port reply : (Accounts -> msg) -> Sub msg
+import Account exposing (..)
 
 
 type alias Model =
-    { accountInfo : AccountInfo
-    , accounts : Accounts
-    , userModel : User.Model
+    { userModel : User.Model
+    , accountModel : Account.Model
     }
 
 
@@ -23,22 +16,23 @@ init =
     let
         ( userInitModel, userInitCmd ) =
             User.init
+
+        ( accountInitModel, accountInitCmd ) =
+            Account.init
     in
-        ( { accountInfo = AccountInfo "" "" ""
-          , accounts = Accounts ""
-          , userModel = userInitModel
+        ( { userModel = userInitModel
+          , accountModel = accountInitModel
           }
-        , Cmd.map UserMsg userInitCmd
+        , Cmd.batch
+            [ Cmd.map UserMsg userInitCmd
+            , Cmd.map AccountMsg accountInitCmd
+            ]
         )
 
 
 type Msg
     = UserMsg User.Msg
-    | GetAccounts
-    | ReplyReceived Accounts
-    | SetAccountId String
-    | SetPin String
-    | SetBlz String
+    | AccountMsg Account.Msg
 
 
 view : Model -> Html Msg
@@ -51,42 +45,6 @@ view model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GetAccounts ->
-            ( model, getAccounts model.accountInfo )
-
-        SetAccountId updated ->
-            let
-                updated1 =
-                    model.accountInfo
-
-                updated2 =
-                    { updated1 | id = updated }
-            in
-                ( { model | accountInfo = updated2 }, Cmd.none )
-
-        SetBlz updated ->
-            let
-                updated1 =
-                    model.accountInfo
-
-                updated2 =
-                    { updated1 | blz = updated }
-            in
-                ( { model | accountInfo = updated2 }, Cmd.none )
-
-        SetPin updated ->
-            let
-                updated1 =
-                    model.accountInfo
-
-                updated2 =
-                    { updated1 | pin = updated }
-            in
-                ( { model | accountInfo = updated2 }, Cmd.none )
-
-        ReplyReceived reply ->
-            ( { model | accounts = reply }, Cmd.none )
-
         UserMsg userMsg ->
             let
                 ( updatedUserModel, userCmd ) =
@@ -94,12 +52,19 @@ update msg model =
             in
                 ( { model | userModel = updatedUserModel }, Cmd.map UserMsg userCmd )
 
+        AccountMsg accountMsg ->
+            let
+                ( updatedAccountModel, accountCmd ) =
+                    Account.update accountMsg model.accountModel
+            in
+                ( { model | accountModel = updatedAccountModel }, Cmd.map AccountMsg accountCmd )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ reply ReplyReceived
-        , Sub.map UserMsg (User.subscriptions model.userModel)
+        [ Sub.map UserMsg (User.subscriptions model.userModel)
+        , Sub.map AccountMsg (Account.subscriptions model.accountModel)
         ]
 
 

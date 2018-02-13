@@ -1,6 +1,8 @@
 port module User exposing (..)
 
 import Html exposing (..)
+import Navigation exposing (..)
+import Html.Events exposing (..)
 import Service exposing (User, Empty)
 
 
@@ -27,6 +29,7 @@ init =
 type Msg
     = GetUser
     | SetUser User
+    | Logout String
 
 
 view : Model -> Html Msg
@@ -36,7 +39,15 @@ view model =
             text "loading user..."
 
         Just user ->
-            text <| "user: " ++ user.email
+            userView user
+
+
+userView : User -> Html Msg
+userView user =
+    div []
+        [ text <| "user: " ++ user.email
+        , button [ onClick <| Logout user.logoutUrl ] [ text "logout" ]
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -47,6 +58,9 @@ update msg model =
 
         SetUser user ->
             ( Just user, Cmd.none )
+
+        Logout url ->
+            ( model, Navigation.load url )
 
 
 subscriptions : Model -> Sub Msg

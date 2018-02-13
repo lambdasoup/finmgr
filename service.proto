@@ -14,6 +14,7 @@ message Accounts {
 
 message User {
   string email = 1;
+  string logout_url = 2;
 }
 
 message Empty {
