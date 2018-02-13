@@ -6,6 +6,7 @@ handlers:
     static_files: index.html
     upload: index.html
     secure: always
+    login: required
 
   - url: /bundle.js
     static_files: bundle.js
@@ -20,6 +21,7 @@ handlers:
   - url: /finmgr.Service/.*
     script: _go_app
     secure: always
+    login: required
 
 skip_files:
    - ^elm-stuff/.*
