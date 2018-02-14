@@ -26,7 +26,12 @@ app.ports.getUserEmpty.subscribe(function(msg) {
     request: empty,
     host: host,
     onEnd: function(res) {
-      app.ports.setUser.send(res.message.toObject());
+      if (res.status == 2) {
+        // TODO error
+        console.log(res.statusMessage);
+      } else {
+        app.ports.setUser.send(res.message.toObject());
+      }
     }
   });
 });
