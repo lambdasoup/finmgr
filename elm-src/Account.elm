@@ -35,7 +35,7 @@ type Msg
 
 view : Model -> Html Msg
 view model =
-    text "loading user..."
+    text <| "Accounts: " ++ model.accounts.info
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

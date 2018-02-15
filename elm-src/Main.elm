@@ -5,9 +5,36 @@ import User exposing (..)
 import Account exposing (..)
 
 
+type PushState
+    = NotAvailable
+    | Available
+    | Unknown
+    | Invalid String
+
+
+convert : String -> PushState
+convert value =
+    case value of
+        "NotAvailable" ->
+            NotAvailable
+
+        "Available" ->
+            Available
+
+        _ ->
+            Invalid value
+
+
+port getPushState : () -> Cmd msg
+
+
+port setPushState : (String -> msg) -> Sub msg
+
+
 type alias Model =
     { userModel : User.Model
     , accountModel : Account.Model
+    , pushState : PushState
     }
 
 
@@ -22,10 +49,12 @@ init =
     in
         ( { userModel = userInitModel
           , accountModel = accountInitModel
+          , pushState = Unknown
           }
         , Cmd.batch
             [ Cmd.map UserMsg userInitCmd
             , Cmd.map AccountMsg accountInitCmd
+            , getPushState ()
             ]
         )
 
@@ -33,12 +62,15 @@ init =
 type Msg
     = UserMsg User.Msg
     | AccountMsg Account.Msg
+    | SetPushState String
 
 
 view : Model -> Html Msg
 view model =
     Html.div []
-        [ Html.map UserMsg (User.view model.userModel)
+        [ text <| toString model.pushState
+        , Html.map UserMsg <| User.view model.userModel
+        , Html.map AccountMsg <| Account.view model.accountModel
         ]
 
 
@@ -59,12 +91,16 @@ update msg model =
             in
                 ( { model | accountModel = updatedAccountModel }, Cmd.map AccountMsg accountCmd )
 
+        SetPushState str ->
+            ( { model | pushState = convert str }, Cmd.none )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Sub.map UserMsg (User.subscriptions model.userModel)
         , Sub.map AccountMsg (Account.subscriptions model.accountModel)
+        , setPushState SetPushState
         ]
 
 
