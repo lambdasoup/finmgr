@@ -1,8 +1,13 @@
-var app = Elm.Main.fullscreen()
+//# sourceURL=app.js
+'use strict';
+
+var elm = require("../elm-src/Main.elm")
+var app = elm.Main.fullscreen()
 var service = require("./service_pb_service")
 var pb = require("./service_pb")
 var jspb = require("google-protobuf")
 var grpc = require("grpc-web-client")
+var push = require("./push")
 
 var host = window.location.protocol + "//" + window.location.host;
 

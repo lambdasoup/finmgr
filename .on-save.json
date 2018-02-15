@@ -2,14 +2,8 @@
   {
     "srcDir": ".",
     "destDir": ".",
-    "files": "*.js",
-    "command": "npm run-script build"
-  },
-  {
-    "srcDir": "elm-src",
-    "destDir": "app",
-    "files": "*.elm",
-    "command": "elm-make elm-src/Main.elm --output app/elm.js"
+    "files": ["**/*.js", "**/*.elm"],
+    "command": "yarn build"
   },
   {
     "srcDir": ".",

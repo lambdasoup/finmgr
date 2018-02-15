@@ -1,6 +1,22 @@
 module.exports = {
-  entry: './grpc-glue.js',
+  entry: './js-src/app.js',
+
   output: {
-    filename: './app/bundle.js',
-  }
+    filename: './app/index.js',
+  },
+
+  devtool: 'source-map',
+
+  module: {
+    rules: [
+      {
+        test:    /\.elm$/,
+        exclude: [/elm-stuff/, /node_modules/],
+        loader:  'elm-webpack-loader?verbose=true&warn=true',
+      },
+    ],
+
+    noParse: /\.elm$/,
+  },
+
 };

@@ -1,10 +1,5 @@
 # generated code
 gen/
-Service.elm
-bundle.js
-elm.js
-service_pb_service.js
-service_pb.js
 service.pb.go
 
 # vi
