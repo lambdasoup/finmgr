@@ -1,0 +1,11 @@
+{
+  "name": "lambdasoup Finance Manager",
+  "short_name": "FinMgr",
+  "icons": [{
+    "src": "images/icon-192x192.png",
+    "sizes": "192x192",
+    "type": "image/png"
+  }],
+  "start_url": "/",
+  "display": "standalone"
+}

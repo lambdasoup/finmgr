@@ -3,9 +3,9 @@ package user
 import (
 	"github.com/lambdasoup/finmgr"
 	"github.com/lambdasoup/finmgr/aegrpc"
+	"github.com/lambdasoup/finmgr/vapid"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
 	aeuser "google.golang.org/appengine/user"
 )
 
@@ -14,31 +14,52 @@ type server struct{}
 type user struct {
 }
 
+type subscription struct {
+	Endpoint string
+	P256dh   []byte
+	Auth     []byte
+}
+
+func makeUserKey(ctx context.Context) *datastore.Key {
+	gu := aeuser.Current(ctx)
+	return datastore.NewKey(ctx, "User", gu.ID, 0, nil)
+}
+
 func (s *server) GetUser(ctx context.Context, in *finmgr.Empty) (*finmgr.User, error) {
 	actx := aegrpc.NewAppengineContext(ctx)
 
-	// use google user id as key
-	gu := aeuser.Current(actx)
-	uk := datastore.NewKey(actx, "User", gu.ID, 0, nil)
+	lu, err := aeuser.LogoutURL(actx, "/")
 
-	log.Debugf(actx, "uk: %v", uk)
+	gu := aeuser.Current(actx)
+	return &finmgr.User{Email: gu.Email, LogoutUrl: lu}, err
+}
+
+func getUser(ctx context.Context) (*user, error) {
+	uk := makeUserKey(ctx)
 
 	// get user from db, create if not exist
 	u := user{}
-	err := datastore.Get(actx, uk, &u)
+	err := datastore.Get(ctx, uk, &u)
 	if err == datastore.ErrNoSuchEntity {
-		log.Debugf(actx, "trying put")
-		_, err = datastore.Put(actx, uk, &u)
+		_, err = datastore.Put(ctx, uk, &u)
 	}
 
-	// bail on get/put err
-	if err != nil {
-		return nil, err
+	return &u, err
+}
+
+func (sv *server) PutSubscription(ctx context.Context, in *finmgr.Subscription) (*finmgr.Empty, error) {
+	actx := aegrpc.NewAppengineContext(ctx)
+
+	uk := makeUserKey(actx)
+	sk := datastore.NewIncompleteKey(actx, "Subscription", uk)
+	s := subscription{Endpoint: in.GetEndpoint(), P256dh: in.GetP256Dh(), Auth: in.GetAuth()}
+	_, err := datastore.Put(actx, sk, &s)
+
+	if err == nil {
+		vapid.SendTestMessageTo(actx, s.Endpoint, s.Auth, s.P256dh)
 	}
 
-	lu, err := aeuser.LogoutURL(actx, "/")
-
-	return &finmgr.User{Email: gu.Email, LogoutUrl: lu}, err
+	return &finmgr.Empty{}, err
 }
 
 // NewServer returns a new implementation for a UserServiceServer

@@ -8,8 +8,7 @@ import (
 	"github.com/lambdasoup/finmgr/account"
 	"github.com/lambdasoup/finmgr/aegrpc"
 	"github.com/lambdasoup/finmgr/user"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/log"
+	"github.com/lambdasoup/finmgr/vapid"
 	"google.golang.org/grpc"
 )
 
@@ -23,8 +22,6 @@ func init() {
 	http.HandleFunc("/finmgr.UserService/", aegrpc.NewAppengineHandlerFunc(webGrpc.ServeHTTP))
 	http.HandleFunc("/finmgr.AccountService/", aegrpc.NewAppengineHandlerFunc(webGrpc.ServeHTTP))
 
-	http.HandleFunc("/unary.js.map/", func(resp http.ResponseWriter, req *http.Request) {
-		ctx := appengine.NewContext(req)
-		log.Debugf(ctx, "%v", req)
-	})
+	http.HandleFunc("/web-push/publicKey", vapid.GetPublicKey)
+
 }

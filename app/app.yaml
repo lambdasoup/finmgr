@@ -8,9 +8,19 @@ handlers:
     secure: always
     login: required
 
+  - url: /manifest.json
+    static_files: manifest.json
+    upload: manifest.json
+    secure: always
+
   - url: /index.js
     static_files: index.js
     upload: index.js
+    secure: always
+
+  - url: /worker.js
+    static_files: worker.js
+    upload: worker.js
     secure: always
 
   - url: /index.js.map
@@ -22,6 +32,10 @@ handlers:
     script: _go_app
     secure: always
     login: required
+
+  - url: /web-push/publicKey
+    script: _go_app
+    secure: always
 
 skip_files:
    - .*/elm-stuff/.*
