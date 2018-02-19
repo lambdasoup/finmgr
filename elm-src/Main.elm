@@ -1,7 +1,7 @@
 port module Main exposing (main)
 
-import Html exposing (Html, text, div, button)
-import Html.Events exposing (onClick)
+import Html exposing (..)
+import Html.Events exposing (..)
 import User exposing (..)
 import Account exposing (..)
 
@@ -88,7 +88,7 @@ type Msg
 
 view : Model -> Html Msg
 view model =
-    Html.div []
+    div []
         [ viewPushState model.pushState
         , Html.map UserMsg <| User.view model.userModel
         , Html.map AccountMsg <| Account.view model.accountModel
@@ -97,8 +97,9 @@ view model =
 
 viewPushState : PushState -> Html Msg
 viewPushState state =
-    Html.div []
-        [ text <| toString state
+    section []
+        [ h1 [] [ text "Push" ]
+        , text <| toString state
         , case state of
             NeedsPermission ->
                 button [ onClick RequestPermission ] [ text "request permission" ]

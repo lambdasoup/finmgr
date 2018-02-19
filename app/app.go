@@ -24,4 +24,5 @@ func init() {
 
 	http.HandleFunc("/web-push/publicKey", vapid.GetPublicKey)
 
+	http.HandleFunc("/worker", account.UpdateAccounts)
 }

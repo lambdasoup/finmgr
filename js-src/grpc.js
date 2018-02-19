@@ -5,16 +5,16 @@ var grpc = require("grpc-web-client")
 
 export function connect(app) {
   var host = window.location.protocol + "//" + window.location.host;
-  app.ports.getAccounts.subscribe(function(msg) {
-    var accountInfo = new pb.AccountInfo();
-    accountInfo.setId(msg.id);
-    accountInfo.setPin(msg.pin);
-    accountInfo.setBlz(msg.blz);
-    grpc.grpc.unary(service.Service.GetAccounts, {
-      request: accountInfo,
+  app.ports.addBank.subscribe(function(msg) {
+    var bank = new pb.Bank();
+    bank.setId(msg.id);
+    bank.setPin(msg.pin);
+    bank.setBlz(msg.blz);
+    grpc.grpc.unary(service.AccountService.AddBank, {
+      request: bank,
       host: host,
       onEnd: function(res) {
-        app.ports.reply.send(res.message.toObject());
+        // TODO log error?;
       }
     });
   });

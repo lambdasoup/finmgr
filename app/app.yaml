@@ -28,7 +28,16 @@ handlers:
     upload: index.js.map
     secure: always
 
+  - url: /worker
+    script: _go_app
+    login: admin
+
   - url: /finmgr.UserService/.*
+    script: _go_app
+    secure: always
+    login: required
+
+  - url: /finmgr.AccountService/.*
     script: _go_app
     secure: always
     login: required

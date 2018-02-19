@@ -34,12 +34,15 @@ type Msg
 
 view : Model -> Html Msg
 view model =
-    case model of
-        Nothing ->
-            text "loading user..."
+    section []
+        [ h1 [] [ text "User" ]
+        , case model of
+            Nothing ->
+                text "loading user..."
 
-        Just user ->
-            userView user
+            Just user ->
+                userView user
+        ]
 
 
 userView : User -> Html Msg

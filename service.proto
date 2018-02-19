@@ -2,14 +2,19 @@ syntax = "proto3";
 
 package finmgr;
 
-message AccountInfo {
+message Bank {
   string id = 1;
   string pin = 2;
   string blz = 3;
 }
 
+message Account {
+  string name = 1;
+}
+
 message Accounts {
-  string info = 1;
+  repeated Account list = 1;
+  bool loading = 2;
 }
 
 message User {
@@ -28,7 +33,8 @@ message Empty {
 }
 
 service AccountService {
-  rpc GetAccounts(AccountInfo) returns (Accounts) {}
+  rpc GetAccounts(Empty) returns (Accounts) {}
+  rpc AddBank(Bank) returns (Empty) {}
 }
 
 service UserService {

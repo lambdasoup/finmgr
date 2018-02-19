@@ -20,11 +20,6 @@ type subscription struct {
 	Auth     []byte
 }
 
-func makeUserKey(ctx context.Context) *datastore.Key {
-	gu := aeuser.Current(ctx)
-	return datastore.NewKey(ctx, "User", gu.ID, 0, nil)
-}
-
 func (s *server) GetUser(ctx context.Context, in *finmgr.Empty) (*finmgr.User, error) {
 	actx := aegrpc.NewAppengineContext(ctx)
 
@@ -35,7 +30,7 @@ func (s *server) GetUser(ctx context.Context, in *finmgr.Empty) (*finmgr.User, e
 }
 
 func getUser(ctx context.Context) (*user, error) {
-	uk := makeUserKey(ctx)
+	uk := aegrpc.GetUserKey(ctx)
 
 	// get user from db, create if not exist
 	u := user{}
@@ -49,8 +44,8 @@ func getUser(ctx context.Context) (*user, error) {
 
 func (sv *server) PutSubscription(ctx context.Context, in *finmgr.Subscription) (*finmgr.Empty, error) {
 	actx := aegrpc.NewAppengineContext(ctx)
+	uk := aegrpc.GetUserKey(actx)
 
-	uk := makeUserKey(actx)
 	sk := datastore.NewIncompleteKey(actx, "Subscription", uk)
 	s := subscription{Endpoint: in.GetEndpoint(), P256dh: in.GetP256Dh(), Auth: in.GetAuth()}
 	_, err := datastore.Put(actx, sk, &s)

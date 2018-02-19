@@ -1,25 +1,30 @@
 port module Account exposing (..)
 
 import Html exposing (..)
-import Service exposing (AccountInfo, Accounts)
+import Html.Events exposing (..)
+import Html.Attributes exposing (..)
+import Service exposing (Bank, Accounts)
 
 
-port getAccounts : AccountInfo -> Cmd msg
+port getAccounts : () -> Cmd msg
+
+
+port addBank : Bank -> Cmd msg
 
 
 port reply : (Accounts -> msg) -> Sub msg
 
 
 type alias Model =
-    { accountInfo : AccountInfo
+    { bank : Bank
     , accounts : Accounts
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { accountInfo = AccountInfo "" "" ""
-      , accounts = Accounts ""
+    ( { bank = Bank "" "" ""
+      , accounts = Accounts [] False
       }
     , Cmd.none
     )
@@ -27,6 +32,7 @@ init =
 
 type Msg
     = GetAccounts
+    | AddBank
     | ReplyReceived Accounts
     | SetAccountId String
     | SetPin String
@@ -35,44 +41,58 @@ type Msg
 
 view : Model -> Html Msg
 view model =
-    text <| "Accounts: " ++ model.accounts.info
+    section []
+        [ h1 [] [ text "Accounts" ]
+        , input [ placeholder "account ID", onInput SetAccountId ] []
+        , input [ placeholder "blz", onInput SetBlz ] []
+        , input [ placeholder "pin", onInput SetPin ] []
+        , button [ onClick AddBank ] [ text "add" ]
+        , text <|
+            if model.accounts.loading then
+                "loading..."
+            else
+                "done."
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GetAccounts ->
-            ( model, getAccounts model.accountInfo )
+            ( model, getAccounts () )
+
+        AddBank ->
+            ( model, addBank (model.bank) )
 
         SetAccountId updated ->
             let
                 updated1 =
-                    model.accountInfo
+                    model.bank
 
                 updated2 =
                     { updated1 | id = updated }
             in
-                ( { model | accountInfo = updated2 }, Cmd.none )
+                ( { model | bank = updated2 }, Cmd.none )
 
         SetBlz updated ->
             let
                 updated1 =
-                    model.accountInfo
+                    model.bank
 
                 updated2 =
                     { updated1 | blz = updated }
             in
-                ( { model | accountInfo = updated2 }, Cmd.none )
+                ( { model | bank = updated2 }, Cmd.none )
 
         SetPin updated ->
             let
                 updated1 =
-                    model.accountInfo
+                    model.bank
 
                 updated2 =
                     { updated1 | pin = updated }
             in
-                ( { model | accountInfo = updated2 }, Cmd.none )
+                ( { model | bank = updated2 }, Cmd.none )
 
         ReplyReceived reply ->
             ( { model | accounts = reply }, Cmd.none )
