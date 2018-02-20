@@ -6,7 +6,7 @@ var grpc = require("grpc-web-client")
 export function connect(app) {
   var host = window.location.protocol + "//" + window.location.host;
   app.ports.addBank.subscribe(function(msg) {
-    var bank = new pb.Bank();
+    var bank = new pb.AddBankRequest();
     bank.setId(msg.id);
     bank.setPin(msg.pin);
     bank.setBlz(msg.blz);
