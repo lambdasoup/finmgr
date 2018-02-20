@@ -52,6 +52,21 @@ export function connect(app) {
     });
   });
 
+  app.ports.refresh.subscribe(function(msg) {
+    var req = new pb.RefreshRequest();
+    req.setId(msg.id)
+    grpc.grpc.unary(service.AccountService.RefreshBank, {
+      request: req,
+      host: host,
+      onEnd: function(res) {
+        if (res.status == 2) {
+          // TODO error
+          console.log(res.statusMessage);
+        }
+      }
+    });
+  });
+
   app.ports.getUserEmpty.subscribe(function(msg) {
     var empty = new pb.Empty();
     grpc.grpc.unary(service.UserService.GetUser, {

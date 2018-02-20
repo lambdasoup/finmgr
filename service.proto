@@ -19,6 +19,10 @@ message AddBankRequest {
   string blz = 3;
 }
 
+message RefreshRequest {
+  string id = 1;
+}
+
 message Account {
   string name = 1;
   string id = 2;
@@ -42,9 +46,13 @@ message Empty {
 service AccountService {
   rpc GetBanks(Empty) returns (BanksResponse) {}
   rpc AddBank(AddBankRequest) returns (Empty) {}
+  rpc RefreshBank(RefreshRequest) returns (Empty) {}
 }
 
 service UserService {
   rpc GetUser(Empty) returns (User) {}
+}
+
+service PushService {
   rpc PutSubscription(Subscription) returns (Empty) {}
 }

@@ -42,6 +42,11 @@ handlers:
     secure: always
     login: required
 
+  - url: /finmgr.PushService/.*
+    script: _go_app
+    secure: always
+    login: required
+
   - url: /web-push/publicKey
     script: _go_app
     secure: always

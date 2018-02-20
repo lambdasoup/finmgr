@@ -1,7 +1,6 @@
-package webpush
+package push
 
 import (
-	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -10,7 +9,11 @@ import (
 	"math/big"
 	"net/http"
 
+	"golang.org/x/net/context"
+
 	webpush "github.com/SherClockHolmes/webpush-go"
+	"github.com/lambdasoup/finmgr"
+	"github.com/lambdasoup/finmgr/aegrpc"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
@@ -18,6 +21,14 @@ import (
 )
 
 var curve = elliptic.P256()
+
+type server struct{}
+
+type subscription struct {
+	Endpoint string
+	P256dh   []byte
+	Auth     []byte
+}
 
 type keyPair struct {
 	X []byte
@@ -65,8 +76,7 @@ func (k keyPair) publicKey() []byte {
 	return bs
 }
 
-// SendTestMessageTo sends a test message to the given subscriber
-func SendTestMessageTo(ctx context.Context, ep string, auth []byte, p256dh []byte) {
+func sendTestMessageTo(ctx context.Context, ep string, auth []byte, p256dh []byte) {
 
 	kk := datastore.NewKey(ctx, "KeyPair", "vapid-keypair", 0, nil)
 	k := keyPair{}
@@ -98,4 +108,66 @@ func SendTestMessageTo(ctx context.Context, ep string, auth []byte, p256dh []byt
 	if err != nil {
 		log.Errorf(ctx, "could not send notification: %v", err)
 	}
+}
+
+func (sv *server) PutSubscription(ctx context.Context, in *finmgr.Subscription) (*finmgr.Empty, error) {
+	actx := aegrpc.NewAppengineContext(ctx)
+	uk := aegrpc.GetUserKey(ctx)
+
+	sk := datastore.NewIncompleteKey(actx, "Subscription", uk)
+	s := subscription{Endpoint: in.GetEndpoint(), P256dh: in.GetP256Dh(), Auth: in.GetAuth()}
+	_, err := datastore.Put(actx, sk, &s)
+	return &finmgr.Empty{}, err
+}
+
+// Notify sends the given message to the given user
+func Notify(ctx context.Context, uk *datastore.Key, scope string) error {
+	// get server keys
+	kk := datastore.NewKey(ctx, "KeyPair", "vapid-keypair", 0, nil)
+	k := keyPair{}
+	_ = datastore.Get(ctx, kk, &k)
+	prvk := ecdsa.PrivateKey{
+		PublicKey: ecdsa.PublicKey{
+			Curve: curve,
+			X:     new(big.Int),
+			Y:     new(big.Int),
+		},
+		D: new(big.Int),
+	}
+	prvk.D.SetBytes(k.D)
+	prvk.PublicKey.X.SetBytes(k.X)
+	prvk.PublicKey.Y.SetBytes(k.Y)
+
+	// get user keys
+	ss := []subscription{}
+	_, err := datastore.NewQuery("Subscription").Ancestor(uk).GetAll(ctx, &ss)
+	if err != nil {
+		return err
+	}
+
+	// send pushes to each sub
+	for _, s := range ss {
+		ws := webpush.Subscription{}
+		ws.Endpoint = s.Endpoint
+		ws.Keys = webpush.Keys{}
+		ws.Keys.Auth = base64.RawURLEncoding.EncodeToString(s.Auth)
+		ws.Keys.P256dh = base64.RawURLEncoding.EncodeToString(s.P256dh)
+
+		// Send Notification
+		_, err = webpush.SendNotification([]byte(scope), &ws, &webpush.Options{
+			Subscriber:      "<mh@lambdasoup.com>",
+			VAPIDPrivateKey: base64.RawURLEncoding.EncodeToString(prvk.D.Bytes()),
+			HTTPClient:      urlfetch.Client(ctx),
+		})
+		if err != nil {
+			log.Errorf(ctx, "could not send notification: %v", err)
+		}
+	}
+
+	return nil
+}
+
+// NewServer returns a new implementation for a UserServiceServer
+func NewServer() finmgr.PushServiceServer {
+	return new(server)
 }

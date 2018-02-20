@@ -3,9 +3,11 @@ package account
 import (
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/lambdasoup/finmgr"
 	"github.com/lambdasoup/finmgr/aegrpc"
+	"github.com/lambdasoup/finmgr/push"
 	"github.com/mitch000001/go-hbci/client"
 	"github.com/mitch000001/go-hbci/domain"
 	https "github.com/mitch000001/go-hbci/transport/https"
@@ -31,6 +33,7 @@ type account struct {
 	Name string
 }
 
+// AddBank adds a new bank with the given arguments
 func (s *server) AddBank(ctx context.Context, in *finmgr.AddBankRequest) (*finmgr.Empty, error) {
 	actx := aegrpc.NewAppengineContext(ctx)
 	uk := aegrpc.GetUserKey(ctx)
@@ -67,6 +70,61 @@ func (s *server) AddBank(ctx context.Context, in *finmgr.AddBankRequest) (*finmg
 	return &finmgr.Empty{}, err
 }
 
+// RefreshBank refreshed the given bank's accounts
+func (s *server) RefreshBank(ctx context.Context, in *finmgr.RefreshRequest) (*finmgr.Empty, error) {
+	actx := aegrpc.NewAppengineContext(ctx)
+	uk := aegrpc.GetUserKey(ctx)
+
+	//  schedule hbci work
+	err := datastore.RunInTransaction(actx, func(tctx context.Context) error {
+		// get bank
+		b := bank{}
+		bk := makeBankKey(tctx, in.GetId(), uk)
+		terr := datastore.Get(tctx, bk, &b)
+		if terr != nil {
+			return terr
+		}
+
+		// set loading
+		b.Loading = true
+		_, terr = datastore.Put(tctx, bk, &b)
+		if terr != nil {
+			return terr
+		}
+
+		// remove current accounts
+		aks, terr := datastore.NewQuery("Account").
+			Ancestor(bk).
+			KeysOnly().
+			GetAll(tctx, nil)
+		if terr != nil {
+			return terr
+		}
+		terr = datastore.DeleteMulti(tctx, aks)
+		if terr != nil {
+			return terr
+		}
+
+		// enqueue task
+		vs := url.Values{}
+		vs.Set("id", b.ID)
+		vs.Set("uid", uk.StringID())
+		t := taskqueue.NewPOSTTask("/worker", vs)
+		_, terr = taskqueue.Add(tctx, t, "")
+		if terr != nil {
+			return terr
+		}
+
+		return nil
+	}, nil)
+
+	// update client
+	push.Notify(actx, uk, "Account")
+
+	return &finmgr.Empty{}, err
+}
+
+// UpdateAccounts updates accounts for the given bank
 func UpdateAccounts(w http.ResponseWriter, req *http.Request) {
 	ctx := appengine.NewContext(req)
 
@@ -101,6 +159,7 @@ func UpdateAccounts(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	time.Sleep(10 * time.Second)
 	has, err := c.Accounts()
 	if err != nil {
 		log.Errorf(ctx, "could not get hbci accounts: %v", err)
@@ -137,8 +196,8 @@ func UpdateAccounts(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// TODO update client
-	// vapid.UpdateClient(ctx, uk, "AccountService")
+	// update client
+	push.Notify(ctx, uk, "Account")
 }
 
 func (s *server) GetBanks(ctx context.Context, in *finmgr.Empty) (*finmgr.BanksResponse, error) {

@@ -48,13 +48,11 @@ export function connect(app) {
                 .then(function(subscription) {
                   var body = new pb.Subscription();
                   body.setEndpoint(subscription.endpoint);
-                  console.log(new Uint8Array(subscription.getKey(
-                    'p256dh')));
                   body.setAuth(new Uint8Array(subscription.getKey(
                     'auth')));
                   body.setP256dh(new Uint8Array(subscription.getKey(
                     'p256dh')));
-                  grpc.grpc.unary(service.UserService.PutSubscription, {
+                  grpc.grpc.unary(service.PushService.PutSubscription, {
                     request: body,
                     host: host,
                     onEnd: function(res) {

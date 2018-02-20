@@ -3,7 +3,6 @@ package user
 import (
 	"github.com/lambdasoup/finmgr"
 	"github.com/lambdasoup/finmgr/aegrpc"
-	"github.com/lambdasoup/finmgr/webpush"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	aeuser "google.golang.org/appengine/user"
@@ -12,12 +11,6 @@ import (
 type server struct{}
 
 type user struct {
-}
-
-type subscription struct {
-	Endpoint string
-	P256dh   []byte
-	Auth     []byte
 }
 
 func (s *server) GetUser(ctx context.Context, in *finmgr.Empty) (*finmgr.User, error) {
@@ -40,21 +33,6 @@ func getUser(ctx context.Context) (*user, error) {
 	}
 
 	return &u, err
-}
-
-func (sv *server) PutSubscription(ctx context.Context, in *finmgr.Subscription) (*finmgr.Empty, error) {
-	actx := aegrpc.NewAppengineContext(ctx)
-	uk := aegrpc.GetUserKey(actx)
-
-	sk := datastore.NewIncompleteKey(actx, "Subscription", uk)
-	s := subscription{Endpoint: in.GetEndpoint(), P256dh: in.GetP256Dh(), Auth: in.GetAuth()}
-	_, err := datastore.Put(actx, sk, &s)
-
-	if err == nil {
-		webpush.SendTestMessageTo(actx, s.Endpoint, s.Auth, s.P256dh)
-	}
-
-	return &finmgr.Empty{}, err
 }
 
 // NewServer returns a new implementation for a UserServiceServer

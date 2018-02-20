@@ -3,13 +3,16 @@ port module Account exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
-import Service exposing (AddBankRequest, Bank, BanksResponse, Account)
+import Service exposing (RefreshRequest, AddBankRequest, Bank, BanksResponse, Account)
 
 
 port getBanks : () -> Cmd msg
 
 
 port addBank : AddBankRequest -> Cmd msg
+
+
+port refresh : RefreshRequest -> Cmd msg
 
 
 port setBanks : (BanksResponse -> msg) -> Sub msg
@@ -39,6 +42,7 @@ init =
 
 type Msg
     = GetAccounts
+    | Refresh Bank
     | ReplyReceived BanksResponse
     | UpdateForm FormMsg
 
@@ -73,11 +77,10 @@ viewBank : Bank -> Html Msg
 viewBank bank =
     li []
         [ h1 [] [ text bank.blz ]
-        , text <|
-            if bank.updating then
-                "loading..."
-            else
-                "done."
+        , if bank.updating then
+            text "loading..."
+          else
+            button [ onClick <| Refresh bank ] [ text "refresh" ]
         , ul [] (List.map viewAccount bank.accounts)
         ]
 
@@ -94,6 +97,9 @@ update msg model =
     case msg of
         GetAccounts ->
             ( model, getBanks () )
+
+        Refresh bank ->
+            ( model, refresh <| RefreshRequest bank.id )
 
         ReplyReceived reply ->
             ( { model | banks = reply.banks }, Cmd.none )
