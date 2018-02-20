@@ -84,6 +84,11 @@ export function connect(app) {
         });
     });
   });
+
+  // Handler for messages coming from the service worker
+  navigator.serviceWorker.onmessage = function(event) {
+    app.ports.accountUpdate.send(null);
+  };
 }
 
 function available() {

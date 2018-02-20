@@ -15,6 +15,9 @@ port addBank : AddBankRequest -> Cmd msg
 port refresh : RefreshRequest -> Cmd msg
 
 
+port accountUpdate : (() -> msg) -> Sub msg
+
+
 port setBanks : (BanksResponse -> msg) -> Sub msg
 
 
@@ -43,6 +46,7 @@ init =
 type Msg
     = GetAccounts
     | Refresh Bank
+    | UpdateAccounts ()
     | ReplyReceived BanksResponse
     | UpdateForm FormMsg
 
@@ -104,6 +108,9 @@ update msg model =
         ReplyReceived reply ->
             ( { model | banks = reply.banks }, Cmd.none )
 
+        UpdateAccounts () ->
+            ( model, getBanks () )
+
         UpdateForm formMsg ->
             let
                 ( updatedFormValues, formCmd ) =
@@ -132,4 +139,5 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ setBanks ReplyReceived
+        , accountUpdate UpdateAccounts
         ]

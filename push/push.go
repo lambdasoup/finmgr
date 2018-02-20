@@ -160,7 +160,7 @@ func Notify(ctx context.Context, uk *datastore.Key, scope string) error {
 			HTTPClient:      urlfetch.Client(ctx),
 		})
 		if err != nil {
-			log.Errorf(ctx, "could not send notification: %v", err)
+			log.Warningf(ctx, "could not send notification: %v", err)
 		}
 	}
 

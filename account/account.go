@@ -62,7 +62,8 @@ func (s *server) AddBank(ctx context.Context, in *finmgr.AddBankRequest) (*finmg
 			return terr
 		}
 
-		// TODO update client
+		// update client
+		push.Notify(actx, uk, "Account")
 
 		return nil
 	}, nil)
@@ -167,8 +168,6 @@ func UpdateAccounts(w http.ResponseWriter, req *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-
-	log.Infof(ctx, "loaded %v accounts", len(has))
 
 	// update bank entity
 	err = datastore.RunInTransaction(ctx, func(tctx context.Context) error {
