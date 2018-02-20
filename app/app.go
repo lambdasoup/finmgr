@@ -8,7 +8,7 @@ import (
 	"github.com/lambdasoup/finmgr/account"
 	"github.com/lambdasoup/finmgr/aegrpc"
 	"github.com/lambdasoup/finmgr/user"
-	"github.com/lambdasoup/finmgr/vapid"
+	"github.com/lambdasoup/finmgr/webpush"
 	"google.golang.org/grpc"
 )
 
@@ -22,7 +22,7 @@ func init() {
 	http.HandleFunc("/finmgr.UserService/", aegrpc.NewAppengineHandlerFunc(webGrpc.ServeHTTP))
 	http.HandleFunc("/finmgr.AccountService/", aegrpc.NewAppengineHandlerFunc(webGrpc.ServeHTTP))
 
-	http.HandleFunc("/web-push/publicKey", vapid.GetPublicKey)
+	http.HandleFunc("/web-push/publicKey", webpush.GetPublicKey)
 
 	http.HandleFunc("/worker", account.UpdateAccounts)
 }

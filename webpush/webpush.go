@@ -1,4 +1,4 @@
-package vapid
+package webpush
 
 import (
 	"context"
