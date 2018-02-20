@@ -19,6 +19,39 @@ export function connect(app) {
     });
   });
 
+  app.ports.getBanks.subscribe(function(msg) {
+    var empty = new pb.Empty();
+    grpc.grpc.unary(service.AccountService.GetBanks, {
+      request: empty,
+      host: host,
+      onEnd: function(res) {
+        if (res.status == 2) {
+          // TODO error
+          console.log(res.statusMessage);
+        } else {
+          var msg = {
+            "banks": res.message.getBanksList().map(function(bank) {
+              return {
+                "id": bank.getId(),
+                "blz": bank.getBlz(),
+                "updating": bank.getUpdating(),
+                "accounts": bank.getAccountsList().map(function(
+                  account) {
+                  return {
+                    "id": account.getId(),
+                    "name": account.getName()
+                  }
+                })
+              }
+            })
+          };
+
+          app.ports.setBanks.send(msg);
+        }
+      }
+    });
+  });
+
   app.ports.getUserEmpty.subscribe(function(msg) {
     var empty = new pb.Empty();
     grpc.grpc.unary(service.UserService.GetUser, {

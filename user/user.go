@@ -3,7 +3,7 @@ package user
 import (
 	"github.com/lambdasoup/finmgr"
 	"github.com/lambdasoup/finmgr/aegrpc"
-	"github.com/lambdasoup/finmgr/vapid"
+	"github.com/lambdasoup/finmgr/webpush"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	aeuser "google.golang.org/appengine/user"
@@ -51,7 +51,7 @@ func (sv *server) PutSubscription(ctx context.Context, in *finmgr.Subscription) 
 	_, err := datastore.Put(actx, sk, &s)
 
 	if err == nil {
-		vapid.SendTestMessageTo(actx, s.Endpoint, s.Auth, s.P256dh)
+		webpush.SendTestMessageTo(actx, s.Endpoint, s.Auth, s.P256dh)
 	}
 
 	return &finmgr.Empty{}, err

@@ -20,9 +20,10 @@ import (
 type server struct{}
 
 type bank struct {
-	ID      string
-	BLZ     string
-	PIN     string
+	ID  string
+	BLZ string
+	PIN string
+	// TODO get rid of this?
 	Loading bool
 }
 
@@ -30,7 +31,7 @@ type account struct {
 	Name string
 }
 
-func (s *server) AddBank(ctx context.Context, in *finmgr.Bank) (*finmgr.Empty, error) {
+func (s *server) AddBank(ctx context.Context, in *finmgr.AddBankRequest) (*finmgr.Empty, error) {
 	actx := aegrpc.NewAppengineContext(ctx)
 	uk := aegrpc.GetUserKey(ctx)
 
@@ -110,10 +111,27 @@ func UpdateAccounts(w http.ResponseWriter, req *http.Request) {
 
 	log.Infof(ctx, "loaded %v accounts", len(has))
 
-	// TODO update db
-	b.Loading = false
-	_, err = datastore.Put(ctx, bk, &b)
+	// update bank entity
+	err = datastore.RunInTransaction(ctx, func(tctx context.Context) error {
+		// insert accounts into db
+		for _, ha := range has {
+			a := account{
+				Name: ha.ProductID,
+			}
+			ak := datastore.NewKey(ctx, "Account", ha.AccountConnection.AccountID, 0, bk)
+			_, terr := datastore.Put(ctx, ak, &a)
+			if terr != nil {
+				return terr
+			}
+		}
+
+		// update bank loading state
+		b.Loading = false
+		_, terr := datastore.Put(ctx, bk, &b)
+		return terr
+	}, nil)
 	if err != nil {
+		log.Errorf(ctx, "could update bank record: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
@@ -123,33 +141,36 @@ func UpdateAccounts(w http.ResponseWriter, req *http.Request) {
 	// vapid.UpdateClient(ctx, uk, "AccountService")
 }
 
-func (s *server) GetAccounts(ctx context.Context, in *finmgr.Empty) (*finmgr.Accounts, error) {
+func (s *server) GetBanks(ctx context.Context, in *finmgr.Empty) (*finmgr.BanksResponse, error) {
 	actx := aegrpc.NewAppengineContext(ctx)
 	uk := aegrpc.GetUserKey(ctx)
 
 	bs := []bank{}
-	bks, err := datastore.NewQuery("Bank").Ancestor(uk).KeysOnly().GetAll(actx, &bs)
+	bks, err := datastore.NewQuery("Bank").Ancestor(uk).GetAll(actx, &bs)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO limited to one bank for now
-	if len(bks) == 0 {
-		return &finmgr.Accounts{Loading: false, List: []*finmgr.Account{}}, nil
+	resp := finmgr.BanksResponse{}
+	for _, b := range bs {
+		pbb := finmgr.Bank{}
+		pbb.Blz = b.BLZ
+		pbb.Id = b.ID
+		pbb.Updating = b.Loading
+
+		as := []account{}
+		aks, err := datastore.NewQuery("Account").Ancestor(bks[0]).GetAll(actx, &as)
+		if err != nil {
+			return nil, err
+		}
+		for i, a := range as {
+			pbb.Accounts = append(pbb.Accounts, &finmgr.Account{Name: a.Name, Id: aks[i].StringID()})
+		}
+
+		resp.Banks = append(resp.Banks, &pbb)
 	}
 
-	as := []account{}
-	_, err = datastore.NewQuery("Account").Ancestor(bks[0]).GetAll(actx, &as)
-	if err != nil {
-		return nil, err
-	}
-
-	pbas := make([]*finmgr.Account, len(as))
-	for i := range as {
-		pbas[i].Name = as[i].Name
-	}
-
-	return &finmgr.Accounts{Loading: bs[0].Loading, List: pbas}, nil
+	return &resp, nil
 }
 
 func makeBankKey(ctx context.Context, id string, uk *datastore.Key) *datastore.Key {
