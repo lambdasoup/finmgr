@@ -1,78 +1,27 @@
-var service = require("./service_pb_service");
-var pb = require("./service_pb");
-var grpc = require("grpc-web-client");
+'use strict';
+
+import * as grpc from "grpc-web-client";
+import * as pb_service from "./service_pb_service"
+import * as pb from "./service_pb"
 
 var host = window.location.protocol + "//" + window.location.host;
 
-export function connect(app) {
-  var send = app.ports.setPushState.send;
+var service = {};
+export default service;
 
-  app.ports.getPushState.subscribe(function() {
+service.connect = (app) => {
+  service.app = app;
 
-    if (Notification.permission === 'denied') {
-      send('Denied');
-      return;
-    }
+  service.app.ports.getPushState.subscribe(service.onGetPushState);
+  service.app.ports.subscribe.subscribe(service.onSubscribe);
 
-    navigator.serviceWorker.register('/worker.js');
-    navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
-      serviceWorkerRegistration.pushManager.getSubscription()
-        .then(function(subscription) {
-          if (!subscription) {
-            // TODO NeedsPermission?
-            send('Unsubscribed');
-          } else {
-            send('Subscribed');
-          }
-        })
-        .catch(function(err) {
-          send('error:' + err);
-        });
-    });
-  });
-
-  app.ports.subscribe.subscribe(function() {
-    fetch('web-push/publicKey').then(function(response) {
-        response.arrayBuffer().then(function(buffer) {
-          var publicKey = new Uint8Array(buffer);
-          navigator.serviceWorker.ready.then(function(
-              serviceWorkerRegistration) {
-              serviceWorkerRegistration.pushManager.subscribe({
-                  userVisibleOnly: true,
-                  applicationServerKey: publicKey,
-                })
-                .then(function(subscription) {
-                  var body = new pb.Subscription();
-                  body.setEndpoint(subscription.endpoint);
-                  body.setAuth(new Uint8Array(subscription.getKey(
-                    'auth')));
-                  body.setP256dh(new Uint8Array(subscription.getKey(
-                    'p256dh')));
-                  grpc.grpc.unary(service.PushService.PutSubscription, {
-                    request: body,
-                    host: host,
-                    onEnd: function(res) {
-                      send('Subscribed');
-                    }
-                  });
-                })
-            })
-            .catch(function(e) {
-              console.error('Unable to subscribe to push.', e);
-            });
-        });
-      })
-      .catch(function(error) {
-        console.log('Looks like there was a problem: \n', error);
-      });
-  });
-
-  app.ports.unsubscribe.subscribe(function() {
-    navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
+  service.app.ports.unsubscribe.subscribe(function() {
+    navigator.serviceWorker.ready.then(function(
+      serviceWorkerRegistration) {
       serviceWorkerRegistration.pushManager.getSubscription()
         .then(function(subscription) {
           subscription.unsubscribe().then(function() {
-            send('Unsubscribed');
+            service.send('Unsubscribed');
           });
         })
         .catch(function(e) {
@@ -83,6 +32,74 @@ export function connect(app) {
 
   // Handler for messages coming from the service worker
   navigator.serviceWorker.onmessage = function(event) {
-    app.ports.accountUpdate.send(null);
+    service.app.ports.accountUpdate.send(null);
   };
+}
+
+service.send = (msg) => {
+  service.app.ports.setPushState.send(msg);
+};
+
+service.onGetPushState = () => {
+  if (Notification.permission === 'denied') {
+    service.send('Denied');
+    return;
+  }
+
+  navigator.serviceWorker.register('/worker.js');
+  navigator.serviceWorker.ready.then(service.onServiceWorkerReady);
+};
+
+service.onServiceWorkerReady = (serviceWorkerRegistration) => {
+  serviceWorkerRegistration.pushManager.getSubscription()
+    .then(function(subscription) {
+      if (!subscription) {
+        // TODO NeedsPermission?
+        service.send('Unsubscribed');
+      } else {
+        service.send('Subscribed');
+      }
+    })
+    .catch(function(err) {
+      service.send('error:' + err);
+    });
+}
+
+service.onSubscribe = () => {
+  fetch('web-push/publicKey').then(function(response) {
+      response.arrayBuffer().then(function(buffer) {
+        var publicKey = new Uint8Array(buffer);
+        navigator.serviceWorker.ready.then(function(
+            serviceWorkerRegistration) {
+            serviceWorkerRegistration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: publicKey,
+              })
+              .then(function(subscription) {
+                var body = new pb.Subscription();
+                body.setEndpoint(subscription.endpoint);
+                body.setAuth(new Uint8Array(
+                  subscription.getKey(
+                    'auth')));
+                body.setP256dh(new Uint8Array(
+                  subscription.getKey(
+                    'p256dh')));
+                grpc.grpc.unary(pb_service.PushService.PutSubscription, {
+                  request: body,
+                  host: host,
+                  onEnd: function(res) {
+                    service.send('Subscribed');
+                  }
+                });
+              })
+          })
+          .catch(function(e) {
+            console.error('Unable to subscribe to push.',
+              e);
+          });
+      });
+    })
+    .catch(function(error) {
+      console.log('Looks like there was a problem: \n', error);
+    });
 }

@@ -3,7 +3,7 @@
 
 import elm from "./elm"
 import * as grpc from "./grpc";
-import * as push from "./push";
+import push from "./push";
 
 function pwaSupported() {
   if (!('serviceWorker' in navigator)) {
