@@ -1,31 +1,37 @@
-console.log("SW Startup!");
+console.log("SW: startup");
 
 // Install Service Worker
 self.addEventListener('install', function(event) {
-  console.log('installed!');
+  console.log('SW: install');
 });
 
 // Service Worker Active
 self.addEventListener('activate', function(event) {
-  console.log('activated!');
+  console.log('SW: activate');
+  clients.claim();
+  sendToAll("you have been claimed!");
 });
 
 self.addEventListener('push', function(event) {
   console.log('data:', event.data.text());
   var msg = event.data.text();
-  clients.matchAll().then(clients => {
-    clients.forEach(client => {
-      send_message_to_client(client, msg).then(m =>
-        console.log("SW Received Message: " + m));
-    })
-  })
+  sendToAll(msg);
 });
 
-function send_message_to_client(client, msg) {
-  return new Promise(function(resolve, reject) {
-    var msg_chan = new MessageChannel();
+function sendToAll(msg) {
+  clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      sendTo(client, msg).then(m =>
+        console.log("SW: channel response: " + m));
+    })
+  })
+}
 
-    msg_chan.port1.onmessage = function(event) {
+function sendTo(client, msg) {
+  return new Promise(function(resolve, reject) {
+    var chan = new MessageChannel();
+
+    chan.port1.onmessage = function(event) {
       if (event.data.error) {
         reject(event.data.error);
       } else {
@@ -33,6 +39,6 @@ function send_message_to_client(client, msg) {
       }
     };
 
-    client.postMessage("SW Says: '" + msg + "'", [msg_chan.port2]);
+    client.postMessage(msg, [chan.port2]);
   });
 }

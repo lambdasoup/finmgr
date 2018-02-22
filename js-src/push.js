@@ -8,10 +8,6 @@ export function connect(app) {
   var send = app.ports.setPushState.send;
 
   app.ports.getPushState.subscribe(function() {
-    if (!available()) {
-      send('NotAvailable');
-      return;
-    }
 
     if (Notification.permission === 'denied') {
       send('Denied');
@@ -89,17 +85,4 @@ export function connect(app) {
   navigator.serviceWorker.onmessage = function(event) {
     app.ports.accountUpdate.send(null);
   };
-}
-
-function available() {
-  if (!('serviceWorker' in navigator)) {
-    return false;
-  }
-  if (!('PushManager' in window)) {
-    return false;
-  }
-  if (!('showNotification' in ServiceWorkerRegistration.prototype)) {
-    return false;
-  }
-  return true;
 }
