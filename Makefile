@@ -6,6 +6,12 @@ js = app/index.js app/index.js.map
 # all: $(js)
 all: $(js)
 
+watch:
+	while true; do \
+		make all; \
+		inotifywait -qre close_write .; \
+	done
+
 clean:
 	rm -f $(proto)
 	rm -f $(elm)
