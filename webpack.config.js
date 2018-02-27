@@ -6,5 +6,6 @@ module.exports = {
     filename: 'index.js',
     path: path.resolve(__dirname, 'app')
   },
-  devtool: 'source-map'
+  devtool: 'source-map',
+  performance: { hints: false }
 };

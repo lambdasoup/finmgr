@@ -4,6 +4,7 @@
   "description": "",
   "dependencies": {
     "@types/google-protobuf": "^3.2.7",
+    "elm": "^0.18.0",
     "elm-webpack-loader": "^4.4.0",
     "file-loader": "^1.1.6",
     "google-protobuf": "^3.2.0",
