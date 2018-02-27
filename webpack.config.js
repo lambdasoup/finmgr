@@ -1,7 +1,10 @@
+const path = require('path');
+
 module.exports = {
   entry: './js-src/app.js',
   output: {
-    filename: './app/index.js',
+    filename: 'index.js',
+    path: path.resolve(__dirname, 'app')
   },
   devtool: 'source-map'
 };
