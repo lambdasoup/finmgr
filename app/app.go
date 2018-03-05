@@ -26,5 +26,6 @@ func init() {
 
 	http.HandleFunc("/web-push/publicKey", push.GetPublicKey)
 
-	http.HandleFunc("/worker", account.UpdateAccounts)
+	http.HandleFunc("/worker/update-accounts", account.UpdateAccounts)
+	http.HandleFunc("/worker/update-transactions", account.UpdateTransactions)
 }

@@ -110,7 +110,7 @@ func (s *server) RefreshBank(ctx context.Context, in *finmgr.RefreshRequest) (*f
 		vs := url.Values{}
 		vs.Set("id", b.ID)
 		vs.Set("uid", uk.StringID())
-		t := taskqueue.NewPOSTTask("/worker", vs)
+		t := taskqueue.NewPOSTTask("/worker/update-accounts", vs)
 		_, terr = taskqueue.Add(tctx, t, "")
 		if terr != nil {
 			return terr
@@ -160,7 +160,6 @@ func UpdateAccounts(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	time.Sleep(10 * time.Second)
 	has, err := c.Accounts()
 	if err != nil {
 		log.Errorf(ctx, "could not get hbci accounts: %v", err)
@@ -194,6 +193,82 @@ func UpdateAccounts(w http.ResponseWriter, req *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
+
+	// update client
+	push.Notify(ctx, uk, "Account")
+}
+
+// UpdateTransactions updates transactions for all banks
+func UpdateTransactions(w http.ResponseWriter, req *http.Request) {
+	ctx := appengine.NewContext(req)
+
+	// get banks
+	bs := []bank{}
+	bks, err := datastore.NewQuery("Bank").GetAll(ctx, &bs)
+	if err != nil {
+		log.Errorf(ctx, "could not get bank record: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	if len(bs) != 1 {
+		log.Errorf(ctx, "wanted exactly 1 bank, but got %v", len(bs))
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	b := bs[0]
+	bk := bks[0]
+	uk := bk.Parent()
+
+	// make HBCI query
+	config := client.Config{
+		AccountID:   b.ID,
+		BankID:      b.BLZ,
+		PIN:         b.PIN,
+		HBCIVersion: domain.FINTSVersion300,
+		Transport:   https.NewNonDefault(urlfetch.Client(ctx)),
+	}
+	log.Debugf(ctx, "built hbci config: %v", config)
+
+	c, err := client.New(config)
+	if err != nil {
+		log.Errorf(ctx, "could not create hbci client: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	// get accounts TODO from db/hbci/both?
+	// as := []account{}
+	// aks, err := datastore.NewQuery("Account").GetAll(ctx, &as)
+	// if err != nil {
+	// 	log.Errorf(ctx, "could not get accounts for bank: %v", err)
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	w.Write([]byte(err.Error()))
+	// 	return
+	// }
+	has, err := c.Accounts()
+	if err != nil {
+		log.Errorf(ctx, "could not get hbci accounts: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	d := time.Date(2017, 1, 1, 0, 0, 0, 0, time.Local)
+	sd := domain.NewShortDate(d)
+	tf := domain.TimeframeFromDate(sd)
+	txs, err := c.AccountTransactions(has[0].AccountConnection, tf, false, "")
+	if err != nil {
+		log.Errorf(ctx, "could not get hbci transactions: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	log.Infof(ctx, "got txs: %v", txs)
 
 	// update client
 	push.Notify(ctx, uk, "Account")

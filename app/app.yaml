@@ -28,7 +28,7 @@ handlers:
     upload: index.js.map
     secure: always
 
-  - url: /worker
+  - url: /worker/.*
     script: _go_app
     login: admin
 

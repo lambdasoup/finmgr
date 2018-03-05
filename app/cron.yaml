@@ -1,0 +1,4 @@
+cron:
+- description: "daily transactions update"
+  url: /worker/update-transactions
+  schedule: every 24 hours
